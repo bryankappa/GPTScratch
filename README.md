@@ -1,2 +1,2 @@
 # GPTScratch
-building Neural Network from scratch (Micrograd, GPT)
+building LLM from scratch (Micrograd, GPT)
