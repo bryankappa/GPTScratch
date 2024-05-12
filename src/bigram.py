@@ -6,10 +6,11 @@ from torch.nn import functional as F
 batch_size = 32 # how many independent sequences will we process in parallel?
 block_size = 8 # what is the maximum context length for predictions?
 max_iters = 3000
-eval_interval = 100
+eval_interval = 300
 learning_rate = 1e-2
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 eval_iters = 200
+n_embed = 32
 # ------------
 # data loading
 def get_batch(split):
@@ -25,14 +26,16 @@ class BigramLanguageModel(nn.Module):
 
     def __init__(self, vocab_size):
         super().__init__()
-        self.token_emb = nn.Embedding(vocab_size, vocab_size) # Can optimize this to use embedding dimension for compression
-
+        self.token_emb = nn.Embedding(vocab_size, n_embed) # Can optimize this to use embedding dimension for compression
+        self.head = nn.Linear(n_embed, vocab_size)
     def forward(self, idx, targets=None):
-        logits = self.token_emb(idx) # (batch_size, block_size, vocab_size)
-
+        tok_emb = self.token_emb(idx) # (batch_size, block_size, vocab_size)
+        logits = self.head(tok_emb)
+        
         # you cant return cross entropy due to mismatch of tensors
         # RuntimeError: Expected target size [32, 65], got [32, 8]
-        logits = self.token_emb(idx)  # (batch_size, block_size, embedding_dim)
+        
+
         if targets is not None:
             B, T, C = logits.shape
             logits = logits.view(B * T, -1)
